@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="An interactive, click-through lesson on binary search for IB DP Computer Science — from the number-guessing hook to the while-loop implementation and the classic traps.">
+<title>Searching, Smarter — A Binary Search Lesson</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F4F1EA;
+    --paper-2:#EDE8DC;
+    --paper-3:#E5DFD0;
+    --ink:#1C1B19;
+    --ink-soft:#615D52;
+    --line:#D8D1C0;
+    --accent:#EE4D2A;
+    --accent-2:#C93C1E;
+    --accent-soft:rgba(238,77,42,.10);
+    --green:#1E9B57;
+    --green-2:#137A43;
+    --green-soft:rgba(30,155,87,.13);
+    --blue:#2C6FB0;
+    --blue-2:#1F507F;
+    --blue-soft:#E7F0F8;
+    --editor-bg:#191A24;
+    --editor-2:#21222F;
+    --editor-line:#2C2E3D;
+    --editor-text:#CDD2EC;
+    --c-key:#FF8163;
+    --c-fn:#FFCB6B;
+    --c-num:#9BE2A8;
+    --c-str:#9DD2FF;
+    --c-com:#646A88;
+    --c-op:#C792EA;
+    --hl:rgba(255,203,107,.16);
+    --radius:14px;
+    --shadow:0 12px 34px rgba(28,27,25,.10);
+    --shadow-sm:0 4px 14px rgba(28,27,25,.08);
+    --display:'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+    --mono:'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:var(--display);
+    color:var(--ink);
+    background-color:var(--paper);
+    background-image:radial-gradient(var(--line) 1px, transparent 1px);
+    background-size:26px 26px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:22px 26px 90px}
+
+  /* ---------- Top bar / stepper ---------- */
+  header{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:14px;flex-wrap:wrap}
+  .brand{display:flex;align-items:baseline;gap:12px}
+  .brand h1{font-size:clamp(20px,2.4vw,26px);font-weight:800;letter-spacing:-.02em}
+  .brand .tag{font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.12em;border:1px solid var(--accent);padding:3px 7px;border-radius:6px}
+  .stepper{display:flex;gap:6px;flex-wrap:wrap}
+  .step-dot{
+    font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink-soft);
+    background:var(--paper-2);border:1px solid var(--line);border-radius:9px;
+    padding:7px 11px;cursor:pointer;transition:all .18s ease;display:flex;align-items:center;gap:7px;
+  }
+  .step-dot .n{display:inline-flex;width:18px;height:18px;align-items:center;justify-content:center;border-radius:50%;background:var(--paper-3);font-size:11px;transition:all .18s ease}
+  .step-dot:hover{border-color:var(--accent);color:var(--ink)}
+  .step-dot:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .step-dot.done{border-color:var(--green);color:var(--ink)}
+  .step-dot.done .n{background:var(--green);color:#fff}
+  .step-dot.active{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .step-dot.active .n{background:var(--accent);color:#fff}
+
+  /* ---------- Progress ---------- */
+  .progress{height:5px;background:var(--paper-3);border:1px solid var(--line);border-radius:99px;overflow:hidden;margin:0 0 22px}
+  .progress-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));border-radius:99px;transition:width .45s cubic-bezier(.2,.7,.3,1);width:16.6%}
+
+  /* ---------- Section frame ---------- */
+  .scene{display:none;animation:rise .45s cubic-bezier(.2,.7,.3,1)}
+  .scene.show{display:block}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  @media(prefers-reduced-motion:reduce){
+    .scene{animation:none}
+    *{transition-duration:.01ms !important}
+  }
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:26px 28px;position:relative;overflow:hidden}
+  .card::before{content:"";position:absolute;top:0;left:0;width:5px;height:100%;background:var(--accent)}
+  .eyebrow{font-family:var(--mono);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--accent);margin-bottom:6px}
+  h2{font-size:clamp(23px,3vw,32px);font-weight:800;letter-spacing:-.025em;margin-bottom:10px;line-height:1.1}
+  h3.sub{font-family:var(--mono);font-size:14px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);margin:26px 0 6px}
+  .lede{font-size:17px;color:var(--ink-soft);max-width:62ch;margin-bottom:18px}
+  .lede b{color:var(--ink);font-weight:600}
+
+  /* ---------- Presenter note (only the presenter reads this) ---------- */
+  .note{font-size:14px;color:var(--ink-soft);background:var(--paper-2);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:10px 14px 10px 16px;margin:18px 0;font-style:italic}
+  .note b{font-style:normal;color:var(--ink);font-weight:700}
+  .note i{color:var(--accent-2);font-style:italic}
+  .note::before{content:"PRESENTER NOTE";font-style:normal;font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--accent);display:block;margin-bottom:3px;font-weight:700}
+
+  /* ---------- New-word / definition aside ---------- */
+  .define{display:flex;gap:12px;align-items:flex-start;background:var(--blue-soft);border:1px solid #C7DBEC;border-radius:10px;padding:11px 14px;margin:16px 0;font-size:14px;color:#27445C;max-width:64ch}
+  .define .dtag{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;background:var(--blue);color:#fff;border-radius:5px;padding:3px 6px;white-space:nowrap;margin-top:1px}
+  .define b{color:var(--blue-2)}
+  .define code{font-family:var(--mono);font-size:.92em;background:#fff;border:1px solid #C7DBEC;padding:0 5px;border-radius:5px;color:var(--blue-2)}
+
+  /* ---------- Big idea / insight ---------- */
+  .insight{background:var(--ink);color:var(--paper);border-radius:12px;padding:18px 22px;margin-top:20px;display:flex;gap:16px;align-items:flex-start}
+  .insight .big{font-family:var(--mono);font-weight:700;color:var(--accent);font-size:13px;letter-spacing:.1em;white-space:nowrap;padding-top:2px}
+  .insight p{font-size:15.5px}
+  .insight code{background:rgba(255,255,255,.12);padding:1px 6px;border-radius:5px;font-family:var(--mono);font-size:.9em}
+
+  /* ---------- Comprehension check ---------- */
+  .check{background:linear-gradient(180deg,#fff,var(--blue-soft));border:1px solid #C7DBEC;border-left:3px solid var(--blue);border-radius:10px;padding:15px 17px;margin:20px 0 4px}
+  .check-q{font-size:15.5px;font-weight:600;color:var(--ink);display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+  .check-tag{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.1em;background:var(--blue);color:#fff;border-radius:5px;padding:3px 7px;white-space:nowrap}
+  .check-opts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .check-opts button{font-family:var(--display);font-size:14px;font-weight:600;padding:9px 15px;border:1px solid var(--line);border-radius:9px;background:var(--paper);color:var(--ink);cursor:pointer;transition:all .15s}
+  .check-opts button:hover{border-color:var(--blue);transform:translateY(-1px)}
+  .check-opts button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+  .check-opts button.right{background:var(--green-soft);border-color:var(--green);color:var(--green-2)}
+  .check-opts button.wrong{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-2)}
+  .check-fb{display:none;margin-top:12px;font-size:14px;line-height:1.55;padding-left:12px;border-left:2px solid var(--line)}
+  .check-fb.show{display:block}
+  .check-fb.ok{color:var(--green-2);border-left-color:var(--green)}
+  .check-fb.no{color:var(--accent-2);border-left-color:var(--accent)}
+  .check-fb code{font-family:var(--mono);font-size:.92em;background:var(--paper-2);padding:0 5px;border-radius:5px}
+
+  /* ---------- Buttons & controls ---------- */
+  button.btn{font-family:var(--display);font-weight:600;font-size:14px;cursor:pointer;border:1px solid var(--ink);background:var(--ink);color:var(--paper);border-radius:9px;padding:9px 16px;transition:transform .12s ease,background .18s ease}
+  button.btn:hover{transform:translateY(-1px)}
+  button.btn:active{transform:translateY(0)}
+  button.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  button.btn.ghost{background:var(--paper);color:var(--ink)}
+  button.btn.ghost:hover{background:var(--paper-2)}
+  button.btn.accent{background:var(--accent);border-color:var(--accent)}
+  button.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:18px 0}
+  input.fld,select.fld{font-family:var(--mono);font-size:15px;padding:9px 12px;border:1px solid var(--line);border-radius:9px;background:var(--paper);color:var(--ink);min-width:84px}
+  input.fld:focus,select.fld:focus{outline:2px solid var(--accent);outline-offset:1px}
+  label.lbl{font-family:var(--mono);font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em}
+  .stepnum{font-family:var(--mono);font-size:12.5px;color:var(--ink-soft);align-self:center;margin-left:2px}
+  .stepnum b{color:var(--ink)}
+  .inline-hint{font-family:var(--mono);font-size:12px;color:var(--ink-soft);margin:4px 0 0}
+
+  /* ---------- Guessing game ---------- */
+  .gamebar{height:46px;background:var(--paper-2);border:1px solid var(--line);border-radius:10px;position:relative;overflow:hidden;margin:6px 0 4px}
+  .gamefill{position:absolute;top:0;bottom:0;background:var(--accent-soft);border-left:2px solid var(--accent);border-right:2px solid var(--accent);transition:left .5s cubic-bezier(.2,.7,.3,1),right .5s cubic-bezier(.2,.7,.3,1)}
+  .gamelabels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
+  .feedback{font-size:22px;font-weight:800;min-height:32px;letter-spacing:-.02em}
+  .feedback.hi{color:var(--blue)} .feedback.lo{color:var(--accent)} .feedback.win{color:var(--green)}
+  .guesslog{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px;min-height:30px}
+  .gchip{font-family:var(--mono);font-size:12px;padding:4px 9px;border-radius:7px;background:var(--paper-2);border:1px solid var(--line)}
+  .gchip.h{border-color:var(--blue);color:var(--blue)} .gchip.l{border-color:var(--accent);color:var(--accent)} .gchip.w{border-color:var(--green);color:var(--green);background:var(--green-soft)}
+  .counter{font-family:var(--mono);font-size:14px;color:var(--ink-soft)}
+  .counter b{color:var(--ink);font-size:18px}
+
+  /* ---------- Directory (O(1)) ---------- */
+  .dir{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:8px 0 2px}
+  @media(max-width:640px){.dir{grid-template-columns:repeat(2,1fr)}}
+  .slot{text-align:left;border:1px solid var(--line);border-radius:12px;padding:13px 15px 12px;background:var(--paper);cursor:pointer;transition:all .22s cubic-bezier(.2,.7,.3,1);position:relative;font-family:var(--mono);width:100%}
+  .slot:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow-sm)}
+  .slot:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .slot .tab{position:absolute;top:9px;right:11px;font-size:9.5px;letter-spacing:.06em;color:var(--ink-soft);opacity:.65;text-transform:uppercase}
+  .slot .label{display:block;font-weight:700;font-size:16px;color:var(--accent-2)}
+  .slot .val{display:block;font-size:13px;color:var(--ink-soft);margin-top:3px}
+  .slot.hit{background:var(--green-soft);border-color:var(--green);transform:translateY(-4px) scale(1.03);box-shadow:0 0 0 4px var(--green-soft)}
+  .slot.hit .label{color:var(--green-2)}
+  .slot.hit::after{content:"▲ straight here";position:absolute;left:0;right:0;bottom:-22px;text-align:center;font-size:10.5px;font-weight:700;color:var(--green-2);letter-spacing:.04em}
+
+  /* ---------- Array board ---------- */
+  .board{margin:14px 0 4px}
+  .row{display:flex;gap:6px;justify-content:center;flex-wrap:nowrap}
+  .cell{
+    flex:1 1 0;min-width:0;aspect-ratio:1/1;max-width:62px;display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-weight:700;font-size:clamp(12px,1.8vw,16px);
+    background:var(--paper);border:1.5px solid var(--line);border-radius:10px;color:var(--ink);
+    transition:all .28s cubic-bezier(.2,.7,.3,1);position:relative;
+  }
+  .cell.range{background:var(--paper-2);border-color:var(--ink-soft)}
+  .cell.dim{opacity:.28;filter:grayscale(.7);transform:scale(.9)}
+  .cell.past{opacity:.4;background:var(--paper-3)}
+  .cell.check{border-color:var(--blue);background:var(--blue-soft);box-shadow:0 0 0 3px rgba(44,111,176,.18);transform:translateY(-4px)}
+  .cell.mid{border-color:var(--accent);background:var(--accent);color:#fff;box-shadow:0 0 0 4px var(--accent-soft);transform:translateY(-5px) scale(1.05);z-index:2}
+  .cell.found{border-color:var(--green);background:var(--green);color:#fff;box-shadow:0 0 0 5px var(--green-soft);transform:translateY(-5px) scale(1.08);z-index:3;animation:pop .4s}
+  @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.22) translateY(-7px)}100%{transform:scale(1.08) translateY(-5px)}}
+  .ptrs{display:flex;gap:6px;justify-content:center;margin-top:8px}
+  .ptr{flex:1 1 0;min-width:0;max-width:62px;height:20px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:700;color:transparent}
+  .ptr.on{color:var(--accent)}
+  .idxrow{display:flex;gap:6px;justify-content:center;margin-top:2px}
+  .idx{flex:1 1 0;min-width:0;max-width:62px;text-align:center;font-family:var(--mono);font-size:10px;color:var(--ink-soft)}
+
+  .readout{display:flex;gap:22px;flex-wrap:wrap;margin-top:6px}
+  .stat{font-family:var(--mono);font-size:13px;color:var(--ink-soft)}
+  .stat b{display:block;font-size:26px;color:var(--ink);font-weight:700;line-height:1.05}
+  .stat.acc b{color:var(--accent)} .stat.gr b{color:var(--green)} .stat.bl b{color:var(--blue)}
+
+  /* ---------- Code editor ---------- */
+  .editor{background:var(--editor-bg);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);font-family:var(--mono);font-size:13.5px;line-height:1.75}
+  .editor .bar{background:var(--editor-2);padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid var(--editor-line)}
+  .editor .bar .dot{width:11px;height:11px;border-radius:50%}
+  .editor .bar .fn{margin-left:8px;color:var(--c-com);font-size:12px}
+  .code{padding:14px 0;color:var(--editor-text);overflow-x:auto}
+  .ln{display:flex;padding:0 16px;white-space:pre;transition:background .2s ease}
+  .ln .num{color:#4A4E66;width:26px;flex:0 0 26px;text-align:right;margin-right:16px;user-select:none}
+  .ln.hl{background:var(--hl);box-shadow:inset 3px 0 0 var(--c-fn)}
+  .k{color:var(--c-key)} .f{color:var(--c-fn)} .n{color:var(--c-num)} .s{color:var(--c-str)} .c{color:var(--c-com)} .o{color:var(--c-op)} .v{color:var(--editor-text)}
+
+  .vars{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .var{font-family:var(--mono);font-size:13px;background:var(--editor-2);color:var(--editor-text);padding:8px 13px;border-radius:9px;border:1px solid var(--editor-line);transition:all .2s ease}
+  .var .vn{color:#7E84A8} .var .vv{color:var(--c-num);font-weight:700}
+  .var.changed{animation:flash 1s ease}
+  @keyframes flash{0%,35%{border-color:var(--c-fn);box-shadow:0 0 0 2px rgba(255,203,107,.4)}100%{border-color:var(--editor-line);box-shadow:none}}
+  .caption{font-family:var(--mono);font-size:13px;color:var(--ink-soft);margin-top:12px;min-height:20px;padding-left:10px;border-left:2px solid var(--accent);line-height:1.6}
+
+  /* ---------- Calculator ---------- */
+  .calc{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px}
+  @media(max-width:620px){.calc{grid-template-columns:1fr}}
+  .calcbox{border:1px solid var(--line);border-radius:12px;padding:16px 18px;background:var(--paper)}
+  .calcbox.lin{border-color:var(--blue)} .calcbox.bin{border-color:var(--green);background:var(--green-soft)}
+  .calcbox h4{font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);margin-bottom:4px}
+  .calcbox .num{font-family:var(--mono);font-size:36px;font-weight:700;letter-spacing:-.02em;line-height:1}
+  .calcbox.lin .num{color:var(--blue)} .calcbox.bin .num{color:var(--green)}
+  .calcbox .sub{font-size:13px;color:var(--ink-soft);margin-top:4px}
+  .presets{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+  .preset{font-family:var(--mono);font-size:13px;padding:7px 12px;border:1px solid var(--line);border-radius:8px;background:var(--paper);cursor:pointer;transition:all .15s}
+  .preset:hover,.preset.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-2)}
+  .preset:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  /* ---------- Gotchas / practice ---------- */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+  .gotcha{border:1px solid var(--line);border-radius:12px;padding:16px 18px;background:var(--paper)}
+  .gotcha h4{font-size:16px;font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+  .gotcha h4 .pin{font-family:var(--mono);font-size:11px;background:var(--accent);color:#fff;border-radius:6px;padding:2px 7px}
+  .gotcha p{font-size:14px;color:var(--ink-soft)}
+  .gotcha code,.inlinecode{font-family:var(--mono);font-size:.92em;background:var(--paper-2);padding:1px 5px;border-radius:5px;color:var(--accent-2)}
+  .mini{font-family:var(--mono);font-size:12.5px;background:var(--editor-bg);color:var(--editor-text);border-radius:8px;padding:10px 12px;margin-top:10px;white-space:pre;overflow-x:auto;line-height:1.7}
+  .reveal{margin-top:10px;font-size:14px;color:var(--green-2);font-weight:600;display:none}
+  .reveal.show{display:block}
+
+  .quizbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .quizbtns button{font-family:var(--mono);font-size:13px;padding:8px 14px;border:1px solid var(--line);border-radius:8px;background:var(--paper);cursor:pointer;transition:all .15s}
+  .quizbtns button:hover{border-color:var(--accent)}
+  .quizbtns button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .quizbtns button.right{background:var(--green-soft);border-color:var(--green);color:var(--green-2)}
+  .quizbtns button.wrong{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-2)}
+
+  footer{display:flex;justify-content:space-between;align-items:center;margin-top:24px;gap:12px}
+  .hint{font-family:var(--mono);font-size:11px;color:var(--ink-soft);text-align:center;margin-top:14px;line-height:1.7}
+  .kbd{font-family:var(--mono);font-size:10.5px;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 6px;background:var(--paper);color:var(--ink)}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <h1>Searching, Smarter</h1>
+      <span class="tag">Binary Search · IB DP CS</span>
+    </div>
+    <nav class="stepper" id="stepper" aria-label="Lesson steps"></nav>
+  </header>
+  <div class="progress" aria-hidden="true"><div class="progress-bar" id="progress-bar"></div></div>
+
+  <!-- ============ 1. GUESSING GAME ============ -->
+  <section class="scene show" data-i="0" aria-labelledby="t1">
+    <div class="card">
+      <div class="eyebrow">Step 1 of 6 — The Hook</div>
+      <h2 id="t1">I'm thinking of a number from 1&nbsp;to&nbsp;100.</h2>
+      <p class="lede">No code, no theory — just <b>guess</b>. I'll tell you higher or lower, and we'll count how many tries it takes. Watch what your brain does automatically.</p>
+
+      <div class="gamelabels"><span>1</span><span id="g-rangetxt">could be any of 100 numbers</span><span>100</span></div>
+      <div class="gamebar"><div class="gamefill" id="g-fill" style="left:0%;right:0%"></div></div>
+
+      <div class="controls">
+        <label class="sr-only" for="g-input">Your guess between 1 and 100</label>
+        <input class="fld" id="g-input" type="number" min="1" max="100" placeholder="guess…" />
+        <button class="btn accent" id="g-go">Guess</button>
+        <button class="btn ghost" id="g-mid" title="auto-fill the middle of the range that's still possible">Guess the middle</button>
+        <button class="btn ghost" id="g-reset">New number</button>
+        <span class="counter">guesses: <b id="g-count">0</b></span>
+      </div>
+
+      <div class="feedback" id="g-feedback" aria-live="polite">Type a number and hit Guess →</div>
+      <div class="guesslog" id="g-log" aria-hidden="true"></div>
+
+      <div class="note"><b>Ask the student:</b> "Why did you guess <i>50</i> first, and not 1?" Let them say it out loud — that they cut the possibilities in half. They've just invented today's algorithm without the name. If they guessed randomly, try again and nudge: "What guess can <i>never</i> waste a turn?"</div>
+
+      <div id="g-reveal" hidden>
+        <div class="insight">
+          <span class="big">THE SEED</span>
+          <p>You found it in <b id="g-final">—</b> guesses. Going <code>1, 2, 3, 4…</code> could have taken <b>100</b>. You didn't — every guess in the middle <b>threw away half the numbers still in play</b>. Hold that thought: it's the whole lesson.</p>
+        </div>
+
+        <div class="check" data-check>
+          <div class="check-q"><span class="check-tag">QUICK CHECK</span><span>Why is guessing the <b>middle</b> first smarter than guessing 1 first?</span></div>
+          <div class="check-opts">
+            <button data-correct="false">50 is a luckier number</button>
+            <button data-correct="true">It rules out half the numbers no matter the answer</button>
+            <button data-correct="false">It isn't — both are the same</button>
+          </div>
+          <div class="check-fb" data-ok="Exactly. Whatever I say — higher or lower — the middle guess deletes 50 numbers in one move. Guessing 1 only ever deletes one." data-no="Think about the worst case. The middle guess always cuts the leftover numbers in half; guessing 1 only rules out a single value at a time." aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 2. DIRECTORY (O(1)) ============ -->
+  <section class="scene" data-i="1" aria-labelledby="t2">
+    <div class="card">
+      <div class="eyebrow">Step 2 of 6 — The Free Lookup</div>
+      <h2 id="t2">Sometimes you don't search at all.</h2>
+      <p class="lede">Think of the <b>contacts</b> in your phone, or a <b>directory</b>. Every entry has its own <b>labelled slot</b>. Ask for a name and you jump <b>straight to it</b> — you never read the others.</p>
+
+      <div class="dir" id="d-dir"></div>
+      <p class="inline-hint">Click any card — or type a name below — to look someone up.</p>
+
+      <div class="controls" style="margin-top:14px">
+        <label class="sr-only" for="d-input">Name to look up</label>
+        <input class="fld" id="d-input" placeholder="name…" />
+        <button class="btn accent" id="d-go">Look up</button>
+        <button class="btn ghost" id="d-reset">Reset</button>
+      </div>
+
+      <div class="readout">
+        <div class="stat gr"><b id="d-looks">—</b>cards you had to read</div>
+        <div class="stat"><b id="d-size">6</b>cards in the directory</div>
+      </div>
+      <div class="caption" id="d-feedback" aria-live="polite">Click a card or type a name to look someone up.</div>
+
+      <div class="note"><b>The pivot:</b> "So why not always do this? Because a directory only works when every entry has a <i>label</i> to jump to. In code you'll meet this as a <i>dictionary</i> / hash map. But what if you just have a plain <b>list of values</b> with no labels? You can't jump — you have to look. That's next."</div>
+
+      <div class="check" data-check>
+        <div class="check-q"><span class="check-tag">QUICK CHECK</span><span>This directory finds a name in <b>1</b> read. If it had <b>4 million</b> names instead of 6, how many would you read?</span></div>
+        <div class="check-opts">
+          <button data-correct="false">About 4 million</button>
+          <button data-correct="false">About 22</button>
+          <button data-correct="true">Still just 1</button>
+        </div>
+        <div class="check-fb" data-ok="Yes — that's the magic. The size doesn't matter; you jump straight to the labelled slot. We call that constant time, O(1)." data-no="A directory jumps straight to the slot — it never scans. So the answer is always 1, whether it holds 6 names or 6 million. That's O(1)." aria-live="polite"></div>
+      </div>
+
+      <div class="insight">
+        <span class="big">O(1)</span>
+        <p><b>Constant time</b> — the same speed for 6 entries or 6 million, because you never scan. The catch: it needs that special labelled structure. Next up is the everyday case — a plain list — and the most obvious way to search it.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 3. LINEAR (O(n)) ============ -->
+  <section class="scene" data-i="2" aria-labelledby="t3">
+    <div class="card">
+      <div class="eyebrow">Step 3 of 6 — The Obvious Way</div>
+      <h2 id="t3">Check every item, one by one.</h2>
+      <p class="lede">Now there are no labels — just a plain <b>list of values</b>. The simplest search: start at the left and walk through with a <b>for loop</b> until you find it. Let's watch, and count the comparisons.</p>
+
+      <div class="define"><span class="dtag">NEW WORDS</span><div><b>Sorted</b> = arranged smallest&nbsp;→&nbsp;largest. <b>Index</b> = an item's position, counting from <b>0</b>, so <code>arr[0]</code> is the first item and <code>arr[14]</code> is the last. The small grey numbers under the boxes are the indices.</div></div>
+
+      <div class="board">
+        <div class="row" id="l-row"></div>
+        <div class="idxrow" id="l-idx"></div>
+      </div>
+
+      <div class="controls">
+        <label class="lbl" for="l-target">search for</label>
+        <select class="fld" id="l-target"></select>
+        <button class="btn accent" id="l-play">▶ Run</button>
+        <button class="btn ghost" id="l-step">Step ▸</button>
+        <button class="btn ghost" id="l-reset">Reset</button>
+        <span class="stepnum" id="l-num">step <b>0</b> / 0</span>
+      </div>
+
+      <div class="readout">
+        <div class="stat bl"><b id="l-count">0</b>comparisons</div>
+        <div class="stat"><b id="l-result">—</b>result</div>
+      </div>
+
+      <div class="editor" style="margin-top:16px">
+        <div class="bar"><span class="dot" style="background:#FF5F57"></span><span class="dot" style="background:#FEBC2E"></span><span class="dot" style="background:#28C840"></span><span class="fn">linear_search.py</span></div>
+        <div class="code" id="l-code"></div>
+      </div>
+
+      <div class="note"><b>Drive it home:</b> search for <i>80</i> (the last item), then for <i>50</i> (not in the list). "It works — but the worst case touches <i>every</i> element. Double the list, double the work." Then ask: "We already found something faster today — when?"</div>
+
+      <div class="check" data-check>
+        <div class="check-q"><span class="check-tag">QUICK CHECK</span><span>This list has 15 items. With linear search, what's the <b>worst case</b> number of comparisons?</span></div>
+        <div class="check-opts">
+          <button data-correct="false">1</button>
+          <button data-correct="false">About 4</button>
+          <button data-correct="true">15</button>
+        </div>
+        <div class="check-fb" data-ok="Right — if the item is last, or not in the list at all, you check all 15. The cost grows in lockstep with the list size: O(n)." data-no="Worst case the item is last (or missing), so you touch every box: 15. The work grows with n — that's O(n)." aria-live="polite"></div>
+      </div>
+
+      <div class="insight">
+        <span class="big">O(n)</span>
+        <p>Worst case = <b>n</b> comparisons. 15 items → up to 15 checks. A million items → a million checks. <b>Linear</b> — the cost grows in lockstep with the data. We can do far, far better… and you already know the trick.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 4. BINARY (O(log n)) ============ -->
+  <section class="scene" data-i="3" aria-labelledby="t4">
+    <div class="card">
+      <div class="eyebrow">Step 4 of 6 — The Clever Way</div>
+      <h2 id="t4">The guessing game, on a list.</h2>
+      <p class="lede">Remember "higher or lower"? Same trick. Jump to the <b>middle</b>. Target bigger? Throw away the left half. Smaller? Throw away the right half. <b>Repeat</b> — the search space collapses fast.</p>
+
+      <div class="board">
+        <div class="row" id="b-row"></div>
+        <div class="ptrs" id="b-ptr"></div>
+        <div class="idxrow" id="b-idx"></div>
+      </div>
+
+      <div class="controls">
+        <label class="lbl" for="b-target">search for</label>
+        <select class="fld" id="b-target"></select>
+        <button class="btn accent" id="b-play">▶ Run</button>
+        <button class="btn ghost" id="b-step">Step ▸</button>
+        <button class="btn ghost" id="b-reset">Reset</button>
+        <span class="stepnum" id="b-num">step <b>0</b> / 0</span>
+      </div>
+
+      <div class="readout">
+        <div class="stat gr"><b id="b-count">0</b>binary comparisons</div>
+        <div class="stat bl"><b id="b-lincount">0</b>linear would take</div>
+        <div class="stat"><b id="b-result">—</b>result</div>
+      </div>
+
+      <div class="caption" id="b-caption" aria-live="polite">Pick a target and step through. The shaded boxes are still "in play"; watch <b>lo</b>, <b>mid</b>, <b>hi</b>.</div>
+
+      <div class="note"><b>Connect it back:</b> "Higher/lower only worked because the numbers were <i>in order</i>. That's why the list <b>must be sorted</b> — it's the price of admission." (We'll prove what breaks if it isn't, in Step 6.)</div>
+
+      <div class="check" data-check>
+        <div class="check-q"><span class="check-tag">QUICK CHECK</span><span>A <b>sorted</b> list has 1,000 items. Binary search needs about how many comparisons, worst case?</span></div>
+        <div class="check-opts">
+          <button data-correct="false">About 1,000</button>
+          <button data-correct="false">About 500</button>
+          <button data-correct="true">About 10</button>
+        </div>
+        <div class="check-fb" data-ok="Yes — each step halves what's left: 1000 → 500 → 250 → … → 1 is about 10 steps. That's log₂(1000) ≈ 10. We call it O(log n)." data-no="Each step throws away half: 1000 → 500 → 250 → … → 1 takes only about 10 steps. log₂(1000) ≈ 10 — that's O(log n)." aria-live="polite"></div>
+      </div>
+
+      <h3 class="sub">The payoff — try a bigger list</h3>
+      <div class="presets" id="calc-presets" role="group" aria-label="List size presets"></div>
+      <div class="calc">
+        <div class="calcbox lin"><h4>Linear · check every item</h4><div class="num" id="calc-lin">—</div><div class="sub">comparisons, worst case</div></div>
+        <div class="calcbox bin"><h4>Binary · halve each time</h4><div class="num" id="calc-bin">—</div><div class="sub" id="calc-binsub">comparisons, worst case</div></div>
+      </div>
+
+      <div class="insight">
+        <span class="big">O(log n)</span>
+        <p>Each step throws away <b>half</b> of what's left: 16 → 8 → 4 → 2 → 1. That's <code>log₂(n)</code> steps. A <b>billion</b> items? About <b>30</b> comparisons. <i>That</i> is the power of halving — and why search engines and databases live on it.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 5. IMPLEMENTATION ============ -->
+  <section class="scene" data-i="4" aria-labelledby="t5">
+    <div class="card">
+      <div class="eyebrow">Step 5 of 6 — The Code</div>
+      <h2 id="t5">The while-loop implementation.</h2>
+      <p class="lede">Let's write it properly and <b>step through line by line</b>. The list, the pointers, and the variables all move together — this is the algorithm <i>thinking</i>. Go slow; press <b>Step</b> and narrate each line.</p>
+
+      <div class="board">
+        <div class="row" id="i-row"></div>
+        <div class="ptrs" id="i-ptr"></div>
+        <div class="idxrow" id="i-idx"></div>
+      </div>
+
+      <div class="editor" style="margin-top:14px">
+        <div class="bar"><span class="dot" style="background:#FF5F57"></span><span class="dot" style="background:#FEBC2E"></span><span class="dot" style="background:#28C840"></span><span class="fn">binary_search.py</span></div>
+        <div class="code" id="i-code"></div>
+      </div>
+
+      <div class="vars" id="i-vars"></div>
+      <div class="caption" id="i-caption" aria-live="polite">Choose a target, then press <b>Step</b> to walk the execution.</div>
+
+      <div class="controls">
+        <label class="lbl" for="i-target">target</label>
+        <select class="fld" id="i-target"></select>
+        <button class="btn accent" id="i-step">Step ▸</button>
+        <button class="btn ghost" id="i-play">▶ Auto-run</button>
+        <button class="btn ghost" id="i-reset">Reset</button>
+        <span class="stepnum" id="i-num">step <b>0</b> / 0</span>
+      </div>
+
+      <div class="note"><b>Narrate every line</b> (they can't read your face online): "We compute <span class="inlinecode">mid</span>… compare… it's smaller, so the answer must be to the <i>right</i> — move <span class="inlinecode">low</span> past mid… loop again." A highlighted variable just changed. Slow is good here.</div>
+
+      <div class="check" data-check>
+        <div class="check-q"><span class="check-tag">QUICK CHECK</span><span>When <code>arr[mid]</code> is <b>smaller</b> than the target, what should the code do next?</span></div>
+        <div class="check-opts">
+          <button data-correct="false">Search the left half (high = mid − 1)</button>
+          <button data-correct="true">Search the right half (low = mid + 1)</button>
+          <button data-correct="false">Stop — it's not there</button>
+        </div>
+        <div class="check-fb" data-ok="Correct. The list is sorted, so if the middle is too small, the target can only be further right. We move low to mid + 1 and discard everything to the left." data-no="The list is sorted. If the middle value is too small, the target must be to the right, so we set low = mid + 1 and bin the left half." aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 6. PRACTICE + GOTCHAS ============ -->
+  <section class="scene" data-i="5" aria-labelledby="t6">
+    <div class="card">
+      <div class="eyebrow">Step 6 of 6 — Your Turn &amp; The Traps</div>
+      <h2 id="t6">Where it goes wrong.</h2>
+      <p class="lede">The algorithm is short, which is exactly why it bites you. One quick prediction first, then the four classic traps that catch everyone — and a bug to spot.</p>
+
+      <div class="gotcha" style="border-color:var(--accent)">
+        <h4><span class="pin">YOU TRY</span> Predict the first move</h4>
+        <p>The list has 15 items (indices 0–14). We search for <b>80</b>.</p>
+        <div class="controls" style="margin:10px 0 0">
+          <label class="lbl" for="p-mid">first mid index =</label>
+          <input class="fld" id="p-mid" type="number" style="min-width:70px" placeholder="?" />
+          <button class="btn ghost" id="p-check">Check</button>
+          <span class="counter" id="p-fb" aria-live="polite"></span>
+        </div>
+        <div class="quizbtns" id="p-half" style="margin-top:12px">
+          <span class="counter" style="align-self:center">arr[mid] = 41, target = 80 → keep which half?</span>
+          <button data-h="L">Left</button><button data-h="R">Right</button>
+        </div>
+        <div class="reveal" id="p-half-fb" aria-live="polite"></div>
+      </div>
+
+      <div class="grid2" style="margin-top:18px">
+        <div class="gotcha">
+          <h4><span class="pin">TRAP 1</span> It must be sorted</h4>
+          <p>Binary search <b>assumes order</b>. On an unsorted list it throws away the wrong half and misses items that are sitting right there.</p>
+          <div class="board" style="margin:10px 0 2px">
+            <div class="row" id="u-row" style="max-width:420px;margin:0 auto"></div>
+            <div class="ptrs" id="u-ptr" style="max-width:420px;margin:8px auto 0"></div>
+          </div>
+          <button class="btn ghost" id="u-run" style="font-size:13px;padding:7px 12px">Search this unsorted list for 9</button>
+          <div class="reveal" id="u-fb" aria-live="polite"></div>
+        </div>
+
+        <div class="gotcha">
+          <h4><span class="pin">TRAP 2</span> <code>&lt;=</code> not <code>&lt;</code></h4>
+          <p>The loop is <code>while low &lt;= high</code>. Use <code>&lt;</code> and you skip the final one-element window — so a value sitting alone at <code>low == high</code> never gets checked.</p>
+          <div class="mini">low, high = 4, 4   <span class="c"># one item left</span>
+while low <span class="o">&lt;</span> high:   <span class="c"># False! never checks arr[4]</span>
+while low <span class="o">&lt;=</span> high:  <span class="c"># correct — checks it</span></div>
+        </div>
+
+        <div class="gotcha">
+          <h4><span class="pin">TRAP 3</span> Move past <code>mid</code></h4>
+          <p>You must use <code>mid + 1</code> / <code>mid - 1</code>. Reassigning <code>low = mid</code> (not <code>mid + 1</code>) can leave the range the same size forever → <b>infinite loop</b>.</p>
+          <div class="mini">low = mid       <span class="c"># range may never shrink 💀</span>
+low = mid + 1   <span class="c"># guaranteed progress ✓</span></div>
+        </div>
+
+        <div class="gotcha">
+          <h4><span class="pin">TRAP 4</span> Computing <code>mid</code></h4>
+          <p>Use integer division: <code>(low + high) // 2</code>. Python's ints are unbounded so you're safe — but in <b>Java/C</b>, <code>low + high</code> can overflow, so the pro habit is <code>low + (high - low) // 2</code>.</p>
+          <div class="mini">mid = (low + high) // 2        <span class="c"># fine in Python</span>
+mid = low + (high - low) // 2  <span class="c"># overflow-safe everywhere</span></div>
+        </div>
+      </div>
+
+      <div class="gotcha" style="margin-top:18px;border-color:var(--ink)">
+        <h4><span class="pin" style="background:var(--ink)">SPOT THE BUG</span> One line is wrong</h4>
+        <div class="mini" id="bug-code">def search(arr, t):
+    low, high = 0, len(arr) - 1
+    while low <span class="o">&lt;</span> high:        <span class="c"># line A</span>
+        mid = (low + high) // 2     <span class="c"># line B</span>
+        if arr[mid] == t: return mid
+        elif arr[mid] &lt; t: low = mid + 1   <span class="c"># line C</span>
+        else: high = mid - 1            <span class="c"># line D</span>
+    return -1</div>
+        <div class="quizbtns" id="bug-q">
+          <button data-b="A">Line A</button>
+          <button data-b="B">Line B</button>
+          <button data-b="C">Line C</button>
+          <button data-b="D">Line D</button>
+        </div>
+        <div class="reveal" id="bug-fb" aria-live="polite"></div>
+      </div>
+
+      <div class="insight" style="margin-top:20px">
+        <span class="big">RECAP</span>
+        <p><b>O(1)</b> directory (instant, needs labels) → <b>O(n)</b> linear (simple, slow) → <b>O(log n)</b> binary (fast, needs a sorted list). Same problem, three trade-offs. <b>Next lesson:</b> how do we get the list sorted in the first place? And — this halving idea is just <i>recursion</i> in disguise.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <button class="btn ghost" id="nav-prev">← Back</button>
+    <button class="btn" id="nav-next">Next →</button>
+  </footer>
+  <div class="hint">
+    <span class="kbd">←</span> <span class="kbd">→</span> move between steps &nbsp;·&nbsp; on an animated step, <span class="kbd">S</span> = step, <span class="kbd">R</span> = reset<br>
+    Tip: open this once before your call so the fonts cache.
+  </div>
+
+</div>
+
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const ARR = [3, 8, 12, 17, 23, 29, 34, 41, 47, 52, 58, 63, 69, 75, 80];
+
+/* step API registry: scene index -> { step, reset } so the keyboard can drive it */
+const stepApi = {};
+
+/* ---------------- Navigation ---------------- */
+const scenes = $$('.scene');
+const titles = ['Hook', 'O(1)', 'O(n)', 'O(log n)', 'Code', 'Traps'];
+const stepper = $('#stepper');
+let cur = 0, maxReached = 0;
+titles.forEach((t, i) => {
+  const b = document.createElement('button');
+  b.className = 'step-dot' + (i === 0 ? ' active' : '');
+  b.innerHTML = '<span class="n">' + (i + 1) + '</span>' + t;
+  b.setAttribute('aria-label', 'Go to step ' + (i + 1) + ': ' + t);
+  b.onclick = () => goTo(i);
+  stepper.appendChild(b);
+});
+function goTo(i){
+  if (i < 0 || i >= scenes.length) return;
+  cur = i;
+  maxReached = Math.max(maxReached, i);
+  scenes.forEach((s, k) => s.classList.toggle('show', k === i));
+  $$('.step-dot').forEach((d, k) => {
+    d.classList.toggle('active', k === i);
+    d.classList.toggle('done', k < maxReached && k !== i);
+  });
+  $('#progress-bar').style.width = ((i + 1) / scenes.length * 100) + '%';
+  $('#nav-prev').disabled = (i === 0);
+  $('#nav-next').disabled = (i === scenes.length - 1);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+$('#nav-prev').onclick = () => goTo(cur - 1);
+$('#nav-next').onclick = () => goTo(cur + 1);
+document.addEventListener('keydown', e => {
+  const tag = e.target.tagName;
+  if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+  if (e.key === 'ArrowRight') goTo(cur + 1);
+  else if (e.key === 'ArrowLeft') goTo(cur - 1);
+  else if ((e.key === 's' || e.key === 'S') && stepApi[cur]) { e.preventDefault(); stepApi[cur].step(); }
+  else if ((e.key === 'r' || e.key === 'R') && stepApi[cur]) { stepApi[cur].reset(); }
+});
+goTo(0);
+
+/* ---------------- Comprehension checks (generic) ---------------- */
+(function initChecks(){
+  $$('[data-check]').forEach(box => {
+    const fb = box.querySelector('.check-fb');
+    const btns = Array.from(box.querySelectorAll('.check-opts button'));
+    btns.forEach(btn => {
+      btn.onclick = () => {
+        btns.forEach(b => b.classList.remove('right', 'wrong'));
+        const ok = btn.dataset.correct === 'true';
+        btn.classList.add(ok ? 'right' : 'wrong');
+        fb.innerHTML = (ok ? '✓ ' : '✗ ') + (ok ? fb.dataset.ok : fb.dataset.no);
+        fb.className = 'check-fb show ' + (ok ? 'ok' : 'no');
+      };
+    });
+  });
+})();
+
+/* ---------------- Shared board renderer ---------------- */
+function renderRow(rowEl, ptrEl, idxEl, arr, o){
+  o = o || {};
+  rowEl.innerHTML = '';
+  if (idxEl) idxEl.innerHTML = '';
+  if (ptrEl) ptrEl.innerHTML = '';
+  arr.forEach((v, i) => {
+    const c = document.createElement('div'); c.className = 'cell'; c.textContent = v;
+    if (o.range){
+      if (i < o.lo || i > o.hi) c.classList.add('dim');
+      else c.classList.add('range');
+    }
+    if (o.past != null && i < o.past && !o.range) c.classList.add('past');
+    if (i === o.mid){ c.classList.remove('range'); c.classList.add('mid'); }
+    if (i === o.check){ c.classList.add('check'); }
+    if (i === o.found){ c.classList.remove('mid', 'check', 'range'); c.classList.add('found'); }
+    rowEl.appendChild(c);
+    if (idxEl){ const ix = document.createElement('div'); ix.className = 'idx'; ix.textContent = i; idxEl.appendChild(ix); }
+    if (ptrEl){
+      const p = document.createElement('div'); p.className = 'ptr';
+      const tags = [];
+      if (i === o.lo) tags.push('lo');
+      if (i === o.mid) tags.push('mid');
+      if (i === o.hi) tags.push('hi');
+      if (tags.length){ p.textContent = tags.join('·'); p.classList.add('on'); }
+      ptrEl.appendChild(p);
+    }
+  });
+}
+function fillTargets(sel){
+  ARR.forEach(v => { const o = document.createElement('option'); o.value = v; o.textContent = v; sel.appendChild(o); });
+  const o = document.createElement('option'); o.value = 50; o.textContent = '50 (not in list)'; sel.appendChild(o);
+  sel.value = 80;
+}
+function linearCount(arr, t){ let c = 0; for (let i = 0; i < arr.length; i++){ c++; if (arr[i] === t) return c; } return c; }
+
+/* ===================================================== 1. GUESSING GAME */
+(function(){
+  let secret, lo, hi, count, over;
+  const fb = $('#g-feedback'), fill = $('#g-fill'), log = $('#g-log');
+  function reset(){
+    secret = Math.floor(Math.random() * 100) + 1; lo = 1; hi = 100; count = 0; over = false;
+    fb.className = 'feedback'; fb.textContent = 'Type a number and hit Guess →';
+    log.innerHTML = ''; $('#g-count').textContent = '0';
+    $('#g-reveal').hidden = true; $('#g-input').value = '';
+    updateBar();
+  }
+  function updateBar(){
+    const L = (lo - 1) / 99 * 100, R = (100 - hi) / 99 * 100;
+    fill.style.left = L + '%'; fill.style.right = R + '%';
+    const span = (hi - lo + 1);
+    $('#g-rangetxt').textContent = over ? 'found it!' : (span + ' number' + (span === 1 ? '' : 's') + ' still possible (' + lo + '–' + hi + ')');
+  }
+  function guess(){
+    if (over) return;
+    const g = parseInt($('#g-input').value, 10);
+    if (isNaN(g) || g < 1 || g > 100){ fb.className = 'feedback lo'; fb.textContent = 'Pick a whole number 1–100.'; return; }
+    count++; $('#g-count').textContent = count;
+    const chip = document.createElement('span'); chip.className = 'gchip'; chip.textContent = g;
+    if (g === secret){
+      over = true; fb.className = 'feedback win'; fb.textContent = '🎯 Got it — ' + g + '!';
+      chip.classList.add('w'); lo = hi = g; updateBar();
+      $('#g-final').textContent = count; $('#g-reveal').hidden = false;
+    } else if (g < secret){
+      fb.className = 'feedback hi'; fb.textContent = '⬆ Higher than ' + g;
+      chip.classList.add('l'); lo = Math.max(lo, g + 1); updateBar();
+    } else {
+      fb.className = 'feedback lo'; fb.textContent = '⬇ Lower than ' + g;
+      chip.classList.add('h'); hi = Math.min(hi, g - 1); updateBar();
+    }
+    log.appendChild(chip); $('#g-input').value = ''; $('#g-input').focus();
+  }
+  $('#g-go').onclick = guess;
+  $('#g-input').addEventListener('keydown', e => { if (e.key === 'Enter') guess(); });
+  $('#g-mid').onclick = () => { if (over) return; $('#g-input').value = Math.floor((lo + hi) / 2); $('#g-input').focus(); };
+  $('#g-reset').onclick = reset;
+  reset();
+})();
+
+/* ===================================================== 2. DIRECTORY (O(1)) */
+(function(){
+  const data = [['Mai', 8842], ['Linh', 3019], ['Hugo', 7720], ['Tuan', 5503], ['Anh', 6614], ['Bao', 2208]];
+  const dir = $('#d-dir'), fb = $('#d-feedback');
+  data.forEach(([name, num], i) => {
+    const c = document.createElement('button'); c.type = 'button'; c.className = 'slot';
+    c.dataset.name = name.toLowerCase();
+    c.innerHTML = '<span class="tab">slot ' + (i + 1) + '</span><span class="label">' + name + '</span><span class="val">→ ' + num + '</span>';
+    c.onclick = () => look(name);
+    dir.appendChild(c);
+  });
+  $('#d-size').textContent = data.length;
+  function clearHit(){ $$('#d-dir .slot').forEach(s => s.classList.remove('hit')); }
+  function look(q){
+    const query = String(q).trim();
+    clearHit();
+    const entry = data.find(([n]) => n.toLowerCase() === query.toLowerCase());
+    if (entry){
+      const el = $('#d-dir .slot[data-name="' + entry[0].toLowerCase() + '"]');
+      if (el) el.classList.add('hit');
+      $('#d-looks').textContent = '1'; $('#d-looks').parentElement.className = 'stat gr';
+      fb.innerHTML = 'Jumped straight to <b>' + entry[0] + '</b> → ' + entry[1] + '. <b>0</b> other cards read — one look, done.';
+      $('#d-input').value = entry[0];
+    } else if (query){
+      $('#d-looks').textContent = '1'; $('#d-looks').parentElement.className = 'stat gr';
+      fb.innerHTML = 'No card labelled “' + query + '”. Still just <b>one</b> look to be sure it’s missing — a directory never makes you scan.';
+    } else {
+      fb.textContent = 'Click a card or type a name to look someone up.';
+    }
+  }
+  function reset(){
+    clearHit(); $('#d-input').value = '';
+    $('#d-looks').textContent = '—'; $('#d-looks').parentElement.className = 'stat gr';
+    fb.textContent = 'Click a card or type a name to look someone up.';
+  }
+  $('#d-go').onclick = () => look($('#d-input').value);
+  $('#d-input').addEventListener('keydown', e => { if (e.key === 'Enter') look($('#d-input').value); });
+  $('#d-reset').onclick = reset;
+})();
+
+/* ===================================================== 3. LINEAR (O(n)) */
+(function(){
+  const row = $('#l-row'), idx = $('#l-idx'), code = $('#l-code'), num = $('#l-num');
+  const playBtn = $('#l-play'), stepBtn = $('#l-step');
+  const lines = [
+    '<span class="k">def</span> <span class="f">linear_search</span>(arr, target):',
+    '    <span class="k">for</span> i <span class="o">in</span> <span class="f">range</span>(<span class="f">len</span>(arr)):',
+    '        <span class="k">if</span> arr[i] <span class="o">==</span> target:',
+    '            <span class="k">return</span> i        <span class="c"># found</span>',
+    '    <span class="k">return</span> -<span class="n">1</span>            <span class="c"># not here</span>'
+  ];
+  function drawCode(hl){
+    code.innerHTML = lines.map((l, k) => '<div class="ln' + (k === hl ? ' hl' : '') + '"><span class="num">' + (k + 1) + '</span>' + l + '</div>').join('');
+  }
+  fillTargets($('#l-target'));
+  let frames = [], fi = 0, timer = null;
+  function setNum(){ num.innerHTML = 'step <b>' + fi + '</b> / ' + frames.length; }
+  function build(){
+    const t = parseInt($('#l-target').value, 10); frames = [];
+    for (let i = 0; i < ARR.length; i++){
+      const found = ARR[i] === t;
+      frames.push({ i, found, line: found ? 3 : 2, count: i + 1 });
+      if (found) break;
+      if (i === ARR.length - 1) frames.push({ i: -1, found: false, line: 4, count: ARR.length, done: 'none' });
+    }
+  }
+  function show(f){
+    renderRow(row, null, idx, ARR, { check: f.found ? undefined : f.i, found: f.found ? f.i : undefined, past: f.i });
+    drawCode(f.line);
+    $('#l-count').textContent = f.count;
+    if (f.found){ $('#l-result').textContent = 'index ' + f.i; $('#l-result').parentElement.className = 'stat gr'; }
+    else if (f.done === 'none'){ $('#l-result').textContent = 'not found'; $('#l-result').parentElement.className = 'stat acc'; }
+  }
+  function stopTimer(){ if (timer){ clearInterval(timer); timer = null; } playBtn.disabled = false; playBtn.textContent = '▶ Run'; stepBtn.disabled = false; }
+  function reset(){
+    stopTimer();
+    fi = 0; build();
+    renderRow(row, null, idx, ARR, {}); drawCode(1);
+    $('#l-count').textContent = '0'; $('#l-result').textContent = '—'; $('#l-result').parentElement.className = 'stat';
+    setNum();
+  }
+  function step(){ if (fi >= frames.length) return; show(frames[fi]); fi++; setNum(); }
+  function play(){
+    reset(); playBtn.disabled = true; playBtn.textContent = '▶ Running…'; stepBtn.disabled = true;
+    timer = setInterval(() => { if (fi >= frames.length){ stopTimer(); return; } show(frames[fi]); fi++; setNum(); }, 480);
+  }
+  playBtn.onclick = play;
+  stepBtn.onclick = step;
+  $('#l-reset').onclick = reset;
+  $('#l-target').onchange = reset;
+  stepApi[2] = { step, reset };
+  reset();
+})();
+
+/* ===================================================== 4. BINARY + CALC (O(log n)) */
+(function(){
+  const row = $('#b-row'), ptr = $('#b-ptr'), idx = $('#b-idx'), cap = $('#b-caption'), num = $('#b-num');
+  const playBtn = $('#b-play'), stepBtn = $('#b-step');
+  const defaultCap = 'Pick a target and step through. The shaded boxes are still "in play"; watch <b>lo</b>, <b>mid</b>, <b>hi</b>.';
+  fillTargets($('#b-target'));
+  let frames = [], fi = 0, timer = null;
+  function setNum(){ num.innerHTML = 'step <b>' + fi + '</b> / ' + frames.length; }
+  function build(){
+    const t = parseInt($('#b-target').value, 10); frames = []; let lo = 0, hi = ARR.length - 1, c = 0;
+    while (lo <= hi){
+      const m = (lo + hi) >> 1; c++;
+      frames.push({ lo, hi, mid: m, count: c, msg: 'Check the middle: arr[' + m + '] = ' + ARR[m] });
+      if (ARR[m] === t){ frames.push({ lo, hi, mid: m, found: m, count: c, msg: 'arr[' + m + '] = ' + ARR[m] + ' = target → found at index ' + m }); break; }
+      else if (ARR[m] < t){ frames.push({ lo: m + 1, hi, count: c, msg: ARR[m] + ' &lt; ' + t + ' → answer is to the RIGHT, bin the left half' }); lo = m + 1; }
+      else { frames.push({ lo, hi: m - 1, count: c, msg: ARR[m] + ' &gt; ' + t + ' → answer is to the LEFT, bin the right half' }); hi = m - 1; }
+      if (lo > hi) frames.push({ lo, hi, count: c, done: 'none', msg: 'Range is empty → not found' });
+    }
+    $('#b-lincount').textContent = linearCount(ARR, t);
+  }
+  function show(f){
+    renderRow(row, ptr, idx, ARR, { range: true, lo: f.lo, hi: f.hi, mid: f.mid, found: f.found });
+    $('#b-count').textContent = f.count;
+    cap.innerHTML = f.msg;
+    if (f.found != null){ $('#b-result').textContent = 'index ' + f.found; $('#b-result').parentElement.className = 'stat gr'; }
+    else if (f.done === 'none'){ $('#b-result').textContent = 'not found'; $('#b-result').parentElement.className = 'stat acc'; }
+  }
+  function stopTimer(){ if (timer){ clearInterval(timer); timer = null; } playBtn.disabled = false; playBtn.textContent = '▶ Run'; stepBtn.disabled = false; }
+  function reset(){
+    stopTimer();
+    fi = 0; build();
+    renderRow(row, ptr, idx, ARR, { range: true, lo: 0, hi: ARR.length - 1 });
+    $('#b-count').textContent = '0'; $('#b-result').textContent = '—'; $('#b-result').parentElement.className = 'stat';
+    cap.innerHTML = defaultCap;
+    setNum();
+  }
+  function step(){ if (fi >= frames.length) return; show(frames[fi]); fi++; setNum(); }
+  function play(){
+    reset(); playBtn.disabled = true; playBtn.textContent = '▶ Running…'; stepBtn.disabled = true;
+    timer = setInterval(() => { if (fi >= frames.length){ stopTimer(); return; } show(frames[fi]); fi++; setNum(); }, 950);
+  }
+  playBtn.onclick = play;
+  stepBtn.onclick = step;
+  $('#b-reset').onclick = reset;
+  $('#b-target').onchange = reset;
+  stepApi[3] = { step, reset };
+  reset();
+
+  // calculator
+  const presets = [['100', 100], ['1,000', 1000], ['1 million', 1000000], ['1 billion', 1000000000]];
+  const pbox = $('#calc-presets');
+  presets.forEach(([lab, n], i) => {
+    const b = document.createElement('button'); b.className = 'preset' + (i === 2 ? ' on' : ''); b.textContent = lab;
+    b.onclick = () => { $$('#calc-presets .preset').forEach(x => x.classList.remove('on')); b.classList.add('on'); calc(n); };
+    pbox.appendChild(b);
+  });
+  function fmt(n){ return n.toLocaleString('en-US'); }
+  function calc(n){
+    $('#calc-lin').textContent = fmt(n);
+    const steps = Math.ceil(Math.log2(n));
+    $('#calc-bin').textContent = '≈ ' + steps;
+    $('#calc-binsub').textContent = 'comparisons ( log₂ ' + fmt(n) + ' )';
+  }
+  calc(1000000);
+})();
+
+/* ===================================================== 5. STEP-THROUGH (the code) */
+(function(){
+  const row = $('#i-row'), ptr = $('#i-ptr'), idx = $('#i-idx'), code = $('#i-code'), vars = $('#i-vars'), cap = $('#i-caption'), num = $('#i-num');
+  const stepBtn = $('#i-step'), playBtn = $('#i-play');
+  const lines = [
+    '<span class="k">def</span> <span class="f">binary_search</span>(arr, target):',
+    '    low <span class="o">=</span> <span class="n">0</span>',
+    '    high <span class="o">=</span> <span class="f">len</span>(arr) - <span class="n">1</span>',
+    '    <span class="k">while</span> low <span class="o">&lt;=</span> high:',
+    '        mid <span class="o">=</span> (low + high) <span class="o">//</span> <span class="n">2</span>',
+    '        <span class="k">if</span> arr[mid] <span class="o">==</span> target:',
+    '            <span class="k">return</span> mid',
+    '        <span class="k">elif</span> arr[mid] <span class="o">&lt;</span> target:',
+    '            low <span class="o">=</span> mid + <span class="n">1</span>',
+    '        <span class="k">else</span>:',
+    '            high <span class="o">=</span> mid - <span class="n">1</span>',
+    '    <span class="k">return</span> -<span class="n">1</span>'
+  ];
+  function drawCode(hl){
+    code.innerHTML = lines.map((l, k) => '<div class="ln' + (k === hl ? ' hl' : '') + '"><span class="num">' + (k + 1) + '</span>' + l + '</div>').join('');
+  }
+  let prev = {};
+  function drawVars(s){
+    const cells = [['low', s.low], ['high', s.high], ['mid', s.mid == null ? '—' : s.mid],
+                   ['arr[mid]', s.mid == null ? '—' : ARR[s.mid]], ['target', s.t]];
+    vars.innerHTML = cells.map(([n, v]) => {
+      const changed = prev[n] !== undefined && String(prev[n]) !== String(v);
+      return '<div class="var' + (changed ? ' changed' : '') + '"><span class="vn">' + n + '</span> = <span class="vv">' + v + '</span></div>';
+    }).join('');
+    prev = {}; cells.forEach(([n, v]) => { prev[n] = v; });
+  }
+  fillTargets($('#i-target'));
+  let states = [], si = 0, timer = null;
+  function setNum(){ num.innerHTML = 'step <b>' + si + '</b> / ' + states.length; }
+  function build(){
+    const t = parseInt($('#i-target').value, 10); states = []; let lo = 0, hi = ARR.length - 1, mid = null;
+    states.push({ line: 1, low: lo, high: hi, mid: null, t, cap: 'Set low = 0 (the first index).' });
+    states.push({ line: 2, low: lo, high: hi, mid: null, t, cap: 'Set high = ' + hi + ' (the last index).' });
+    while (true){
+      states.push({ line: 3, low: lo, high: hi, mid, t, cap: 'Is low (' + lo + ') ≤ high (' + hi + ')? ' + (lo <= hi ? 'Yes → enter the loop.' : 'No → stop looping.') });
+      if (lo > hi){ states.push({ line: 11, low: lo, high: hi, mid, t, ret: -1, cap: 'Return -1 — not in the list.' }); break; }
+      mid = (lo + hi) >> 1;
+      states.push({ line: 4, low: lo, high: hi, mid, t, cap: 'mid = (' + lo + ' + ' + hi + ') // 2 = ' + mid + '. So arr[' + mid + '] = ' + ARR[mid] + '.' });
+      states.push({ line: 5, low: lo, high: hi, mid, t, cap: 'Is arr[' + mid + '] (' + ARR[mid] + ') == target (' + t + ')? ' + (ARR[mid] === t ? 'Yes!' : 'No.') });
+      if (ARR[mid] === t){ states.push({ line: 6, low: lo, high: hi, mid, t, ret: mid, found: mid, cap: 'Return ' + mid + ' — found it. ✓' }); break; }
+      states.push({ line: 7, low: lo, high: hi, mid, t, cap: 'Is arr[' + mid + '] (' + ARR[mid] + ') < target (' + t + ')? ' + (ARR[mid] < t ? 'Yes.' : 'No.') });
+      if (ARR[mid] < t){ states.push({ line: 8, low: mid + 1, high: hi, mid, t, cap: 'Too small → low = mid + 1 = ' + (mid + 1) + '. The left half is discarded.' }); lo = mid + 1; }
+      else { states.push({ line: 9, low: lo, high: mid - 1, mid, t, cap: 'Too big → high = mid - 1 = ' + (mid - 1) + '. The right half is discarded.' }); hi = mid - 1; }
+    }
+  }
+  function render(s){
+    renderRow(row, ptr, idx, ARR, { range: true, lo: s.low, hi: s.high, mid: s.found != null ? undefined : s.mid, found: s.found });
+    drawCode(s.line); drawVars(s); cap.innerHTML = s.cap;
+  }
+  function stopTimer(){ if (timer){ clearInterval(timer); timer = null; } playBtn.disabled = false; playBtn.textContent = '▶ Auto-run'; stepBtn.disabled = false; }
+  function reset(){
+    stopTimer();
+    si = 0; build(); prev = {};
+    renderRow(row, ptr, idx, ARR, { range: true, lo: 0, hi: ARR.length - 1 });
+    drawCode(0); drawVars({ low: '—', high: '—', mid: null, t: $('#i-target').value });
+    cap.innerHTML = 'Choose a target, then press <b>Step</b> to walk the execution.';
+    setNum();
+  }
+  function step(){ if (si >= states.length) return; render(states[si]); si++; setNum(); }
+  function play(){
+    reset(); playBtn.disabled = true; playBtn.textContent = '▶ Running…'; stepBtn.disabled = true;
+    timer = setInterval(() => { if (si >= states.length){ stopTimer(); return; } step(); }, 850);
+  }
+  stepBtn.onclick = step;
+  playBtn.onclick = play;
+  $('#i-reset').onclick = reset;
+  $('#i-target').onchange = reset;
+  stepApi[4] = { step, reset };
+  reset();
+})();
+
+/* ===================================================== 6. PRACTICE + GOTCHAS */
+(function(){
+  // predict first mid
+  $('#p-check').onclick = () => {
+    const v = parseInt($('#p-mid').value, 10); const fb = $('#p-fb');
+    if (v === 7){ fb.style.color = 'var(--green-2)'; fb.textContent = '✓ (0 + 14) // 2 = 7, and arr[7] = 41'; }
+    else { fb.style.color = 'var(--accent-2)'; fb.textContent = 'Not quite — it’s (0 + 14) // 2'; }
+  };
+  // keep which half
+  $$('#p-half button').forEach(b => {
+    b.onclick = () => {
+      $$('#p-half button').forEach(x => x.classList.remove('right', 'wrong'));
+      const fb = $('#p-half-fb');
+      if (b.dataset.h === 'R'){
+        b.classList.add('right');
+        fb.style.color = 'var(--green-2)';
+        fb.textContent = '✓ Right half. 41 < 80, and the list is sorted, so 80 can only be further right.';
+      } else {
+        b.classList.add('wrong');
+        fb.style.color = 'var(--accent-2)';
+        fb.textContent = 'Look again: 41 is smaller than 80, so the target must be to the right.';
+      }
+      fb.classList.add('show');
+    };
+  });
+
+  // sorted trap demo
+  const U = [5, 2, 9, 1, 7, 3, 8]; const TARGET = 9;
+  const row = $('#u-row'), ptr = $('#u-ptr');
+  renderRow(row, ptr, null, U, { range: true, lo: 0, hi: U.length - 1 });
+  $('#u-run').onclick = async () => {
+    $('#u-run').disabled = true; $('#u-fb').classList.remove('show');
+    let lo = 0, hi = U.length - 1;
+    while (lo <= hi){
+      const m = (lo + hi) >> 1;
+      renderRow(row, ptr, null, U, { range: true, lo, hi, mid: m });
+      await sleep(750);
+      if (U[m] === TARGET){ renderRow(row, ptr, null, U, { range: true, lo, hi, found: m }); break; }
+      else if (U[m] < TARGET) lo = m + 1; else hi = m - 1;
+    }
+    const fb = $('#u-fb');
+    fb.style.color = 'var(--accent-2)';
+    fb.innerHTML = 'Returned <b>not found</b> — but 9 is sitting at index 2! The list wasn’t sorted, so it binned the wrong half.';
+    fb.classList.add('show');
+    $('#u-run').disabled = false;
+  };
+
+  // spot the bug
+  $$('#bug-q button').forEach(b => {
+    b.onclick = () => {
+      $$('#bug-q button').forEach(x => x.classList.remove('right', 'wrong'));
+      const fb = $('#bug-fb'); fb.classList.add('show');
+      if (b.dataset.b === 'A'){
+        b.classList.add('right');
+        fb.style.color = 'var(--green-2)';
+        fb.innerHTML = '✓ Line A. <code>while low &lt; high</code> should be <code>&lt;=</code> — otherwise a one-element window (low == high) is never checked, and that value gets missed.';
+      } else {
+        b.classList.add('wrong');
+        fb.style.color = 'var(--accent-2)';
+        fb.innerHTML = 'That line is fine. Look again at the loop condition (Line A) — what happens when only one element is left?';
+      }
+    };
+  });
+})();
+</script>
+</body>
+</html>
