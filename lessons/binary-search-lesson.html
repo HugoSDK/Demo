@@ -78,6 +78,30 @@
   .progress{height:5px;background:var(--paper-3);border:1px solid var(--line);border-radius:99px;overflow:hidden;margin:0 0 22px}
   .progress-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));border-radius:99px;transition:width .45s cubic-bezier(.2,.7,.3,1);width:20%}
 
+  /* ---------- Top tabs (Lesson / Key terms) ---------- */
+  .tabs{display:flex;gap:8px;margin:2px 0 16px}
+  .tab{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--ink-soft);background:var(--paper-2);border:1px solid var(--line);border-radius:9px;padding:8px 15px;cursor:pointer;transition:all .15s ease}
+  .tab:hover{border-color:var(--accent);color:var(--ink)}
+  .tab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .tab.active{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+  /* The Key-terms view replaces the lesson body */
+  #terms{display:none}
+  body.terms #terms{display:block}
+  body.terms .progress,
+  body.terms .scene,
+  body.terms footer{display:none !important}
+
+  /* ---------- Glossary ---------- */
+  .glossary{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
+  @media(max-width:720px){.glossary{grid-template-columns:1fr}}
+  .glossary .term{background:var(--paper-2);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;padding:13px 16px}
+  .glossary dt{font-family:var(--display);font-weight:800;font-size:16px;color:var(--ink);margin-bottom:5px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .glossary dt .big-o{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:6px;padding:2px 7px}
+  .glossary dd{font-size:14px;color:var(--ink-soft);line-height:1.55}
+  .glossary dd code{font-family:var(--mono);font-size:.9em;background:var(--paper);border:1px solid var(--line);padding:0 5px;border-radius:5px;color:var(--accent-2)}
+  .glossary dd b{color:var(--ink);font-weight:600}
+
   /* ---------- Section frame ---------- */
   .scene{display:none;animation:rise .45s cubic-bezier(.2,.7,.3,1)}
   .scene.show{display:block}
@@ -245,6 +269,10 @@
     </div>
     <nav class="stepper" id="stepper" aria-label="Lesson steps"></nav>
   </header>
+  <div class="tabs" role="tablist" aria-label="View">
+    <button class="tab active" id="tab-lesson" role="tab" aria-selected="true">Lesson</button>
+    <button class="tab" id="tab-terms" role="tab" aria-selected="false">Key terms</button>
+  </div>
   <div class="progress" aria-hidden="true"><div class="progress-bar" id="progress-bar"></div></div>
 
   <!-- ============ 1. GUESSING GAME ============ -->
@@ -528,6 +556,29 @@ mid = low + (high - low) // 2  <span class="c"># overflow-safe everywhere</span>
     <button class="btn" id="nav-next">Next →</button>
   </footer>
 
+  <!-- ============ KEY TERMS (separate tab) ============ -->
+  <section id="terms" aria-label="Key terms and definitions">
+    <div class="card">
+      <div class="eyebrow">Reference — Key Terms</div>
+      <h2>Key terms &amp; concepts</h2>
+      <p class="lede">The vocabulary behind today's lesson — flip here anytime, then jump back with the <b>Lesson</b> tab (or a step above).</p>
+      <dl class="glossary">
+        <div class="term"><dt>Algorithm</dt><dd>A precise, finite list of steps that solves a problem. Today's are recipes for <b>finding</b> a value in a list.</dd></div>
+        <div class="term"><dt>Array / list</dt><dd>An ordered collection of values reached by position. In Python it's a <code>list</code>; <code>arr[i]</code> reads the value at index <code>i</code>.</dd></div>
+        <div class="term"><dt>Index</dt><dd>An item's position, counting from <b>0</b>. <code>arr[0]</code> is the first item; <code>arr[14]</code> is the 15th.</dd></div>
+        <div class="term"><dt>Sorted</dt><dd>Arranged in order (smallest → largest). Binary search works <b>only</b> on sorted data — that's its price of admission.</dd></div>
+        <div class="term"><dt>Comparison</dt><dd>One check of "is this the target, or smaller, or larger?" We count comparisons to measure how much work a search does.</dd></div>
+        <div class="term"><dt>Linear search <span class="big-o">O(n)</span></dt><dd>Check each item from the start until you find the target (or run out). Works on any list, but slow when it's big.</dd></div>
+        <div class="term"><dt>Binary search <span class="big-o">O(log n)</span></dt><dd>Repeatedly halve a <b>sorted</b> list: check the middle, then keep only the half that could still hold the target.</dd></div>
+        <div class="term"><dt>Time complexity <span class="big-o">Big-O</span></dt><dd>How an algorithm's work grows with the input size <code>n</code>, ignoring constant factors and hardware.</dd></div>
+        <div class="term"><dt>log₂</dt><dd>"How many times can you halve <code>n</code> to reach 1?" <code>log₂(1000) ≈ 10</code> — the number of steps binary search needs.</dd></div>
+        <div class="term"><dt>Worst case</dt><dd>The most work an algorithm can be forced to do — e.g. the target is last, or missing. Big-O usually describes this.</dd></div>
+        <div class="term"><dt>lo · mid · hi</dt><dd>Binary search's three pointers: the <b>low</b> and <b>high</b> ends of the part still in play, and the <b>middle</b> it checks — <code>mid = (lo + hi) // 2</code>.</dd></div>
+        <div class="term"><dt>Integer division <span class="big-o">//</span></dt><dd>Division that drops the remainder, giving a whole number: <code>(0 + 14) // 2 == 7</code>. Keeps <code>mid</code> on a real index.</dd></div>
+      </dl>
+    </div>
+  </section>
+
 </div>
 
 <script>
@@ -555,6 +606,7 @@ titles.forEach((t, i) => {
 });
 function goTo(i){
   if (i < 0 || i >= scenes.length) return;
+  selectTab(false);
   cur = i;
   maxReached = Math.max(maxReached, i);
   scenes.forEach((s, k) => s.classList.toggle('show', k === i));
@@ -572,11 +624,26 @@ $('#nav-next').onclick = () => goTo(cur + 1);
 document.addEventListener('keydown', e => {
   const tag = e.target.tagName;
   if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+  if (document.body.classList.contains('terms')) return;
   if (e.key === 'ArrowRight') goTo(cur + 1);
   else if (e.key === 'ArrowLeft') goTo(cur - 1);
   else if ((e.key === 's' || e.key === 'S') && stepApi[cur]) { e.preventDefault(); stepApi[cur].step(); }
   else if ((e.key === 'r' || e.key === 'R') && stepApi[cur]) { stepApi[cur].reset(); }
 });
+
+/* ---------------- Top tabs: Lesson / Key terms ---------------- */
+const tabLesson = $('#tab-lesson'), tabTerms = $('#tab-terms');
+function selectTab(showTerms){
+  document.body.classList.toggle('terms', showTerms);
+  tabTerms.classList.toggle('active', showTerms);
+  tabLesson.classList.toggle('active', !showTerms);
+  tabTerms.setAttribute('aria-selected', String(showTerms));
+  tabLesson.setAttribute('aria-selected', String(!showTerms));
+  if (showTerms) window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+tabTerms.onclick = () => selectTab(true);
+tabLesson.onclick = () => selectTab(false);
+
 goTo(0);
 
 /* ---------------- Comprehension checks (generic) ---------------- */
