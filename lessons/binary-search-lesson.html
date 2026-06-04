@@ -174,9 +174,10 @@
   .idxrow{display:flex;gap:6px;justify-content:center;margin-top:2px}
   .idx{flex:1 1 0;min-width:0;max-width:62px;text-align:center;font-family:var(--mono);font-size:10px;color:var(--ink-soft)}
 
-  .readout{display:flex;gap:22px;flex-wrap:wrap;margin-top:6px}
-  .stat{font-family:var(--mono);font-size:13px;color:var(--ink-soft)}
-  .stat b{display:block;font-size:26px;color:var(--ink);font-weight:700;line-height:1.05}
+  .readout{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px}
+  .stat{font-family:var(--mono);font-size:13px;color:var(--ink-soft);background:var(--paper-2);border:1px solid var(--line);border-radius:10px;padding:10px 14px 9px;min-width:128px;box-shadow:var(--shadow-sm)}
+  .stat b{display:block;font-size:26px;color:var(--ink);font-weight:700;line-height:1.05;margin-bottom:2px}
+  .stat.acc{border-color:var(--accent)} .stat.gr{border-color:var(--green)} .stat.bl{border-color:var(--blue)}
   .stat.acc b{color:var(--accent)} .stat.gr b{color:var(--green)} .stat.bl b{color:var(--blue)}
 
   /* ---------- Code editor ---------- */
