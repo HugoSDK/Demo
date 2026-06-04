@@ -94,11 +94,6 @@
   .lede{font-size:17px;color:var(--ink-soft);max-width:62ch;margin-bottom:18px}
   .lede b{color:var(--ink);font-weight:600}
 
-  /* ---------- Presenter note (only the presenter reads this) ---------- */
-  .note{font-size:14px;color:var(--ink-soft);background:var(--paper-2);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:10px 14px 10px 16px;margin:18px 0;font-style:italic}
-  .note b{font-style:normal;color:var(--ink);font-weight:700}
-  .note i{color:var(--accent-2);font-style:italic}
-  .note::before{content:"PRESENTER NOTE";font-style:normal;font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--accent);display:block;margin-bottom:3px;font-weight:700}
 
   /* ---------- New-word / definition aside ---------- */
   .define{display:flex;gap:12px;align-items:flex-start;background:var(--blue-soft);border:1px solid #C7DBEC;border-radius:10px;padding:11px 14px;margin:16px 0;font-size:14px;color:#27445C;max-width:64ch}
@@ -280,7 +275,6 @@
         <label class="sr-only" for="g-input">Your guess between 1 and 100</label>
         <input class="fld" id="g-input" type="number" min="1" max="100" placeholder="guess…" />
         <button class="btn accent" id="g-go">Guess</button>
-        <button class="btn ghost" id="g-mid" title="auto-fill the middle of the range that's still possible">Guess the middle</button>
         <button class="btn ghost" id="g-reset">New number</button>
         <span class="counter">guesses: <b id="g-count">0</b></span>
       </div>
@@ -288,7 +282,6 @@
       <div class="feedback" id="g-feedback" aria-live="polite">Type a number and hit Guess →</div>
       <div class="guesslog" id="g-log" aria-hidden="true"></div>
 
-      <div class="note"><b>Ask the student:</b> "Why did you guess <i>50</i> first, and not 1?" Let them say it out loud — that they cut the possibilities in half. They've just invented today's algorithm without the name. If they guessed randomly, try again and nudge: "What guess can <i>never</i> waste a turn?"</div>
 
       <div id="g-reveal" hidden>
         <div class="insight">
@@ -332,7 +325,6 @@
       </div>
       <div class="caption" id="d-feedback" aria-live="polite">Click a card or type a name to look someone up.</div>
 
-      <div class="note"><b>The pivot:</b> "So why not always do this? Because a directory only works when every entry has a <i>label</i> to jump to. In code you'll meet this as a <i>dictionary</i> / hash map. But what if you just have a plain <b>list of values</b> with no labels? You can't jump — you have to look. That's next."</div>
 
       <div class="check" data-check>
         <div class="check-q"><span class="check-tag">QUICK CHECK</span><span>This directory finds a name in <b>1</b> read. If it had <b>4 million</b> names instead of 6, how many would you read?</span></div>
@@ -384,7 +376,6 @@
         <div class="code" id="l-code"></div>
       </div>
 
-      <div class="note"><b>Drive it home:</b> search for <i>80</i> (the last item), then for <i>50</i> (not in the list). "It works — but the worst case touches <i>every</i> element. Double the list, double the work." Then ask: "We already found something faster today — when?"</div>
 
       <div class="check" data-check>
         <div class="check-q"><span class="check-tag">QUICK CHECK</span><span>This list has 15 items. With linear search, what's the <b>worst case</b> number of comparisons?</span></div>
@@ -433,7 +424,6 @@
 
       <div class="caption" id="b-caption" aria-live="polite">Pick a target and step through. The shaded boxes are still "in play"; watch <b>lo</b>, <b>mid</b>, <b>hi</b>.</div>
 
-      <div class="note"><b>Connect it back:</b> "Higher/lower only worked because the numbers were <i>in order</i>. That's why the list <b>must be sorted</b> — it's the price of admission." (We'll prove what breaks if it isn't, in Step 6.)</div>
 
       <div class="check" data-check>
         <div class="check-q"><span class="check-tag">QUICK CHECK</span><span>A <b>sorted</b> list has 1,000 items. Binary search needs about how many comparisons, worst case?</span></div>
@@ -489,7 +479,6 @@
         <span class="stepnum" id="i-num">step <b>0</b> / 0</span>
       </div>
 
-      <div class="note"><b>Narrate every line</b> (they can't read your face online): "We compute <span class="inlinecode">mid</span>… compare… it's smaller, so the answer must be to the <i>right</i> — move <span class="inlinecode">low</span> past mid… loop again." A highlighted variable just changed. Slow is good here.</div>
 
       <div class="check" data-check>
         <div class="check-q"><span class="check-tag">QUICK CHECK</span><span>When <code>arr[mid]</code> is <b>smaller</b> than the target, what should the code do next?</span></div>
@@ -724,7 +713,7 @@ function linearCount(arr, t){ let c = 0; for (let i = 0; i < arr.length; i++){ c
     count++; $('#g-count').textContent = count;
     const chip = document.createElement('span'); chip.className = 'gchip'; chip.textContent = g;
     if (g === secret){
-      over = true; fb.className = 'feedback win'; fb.textContent = '🎯 Got it — ' + g + '!';
+      over = true; fb.className = 'feedback win'; fb.textContent = '🎯 Found it! The number was ' + g + '.';
       chip.classList.add('w'); lo = hi = g; updateBar();
       $('#g-final').textContent = count; $('#g-reveal').hidden = false;
     } else if (g < secret){
@@ -738,7 +727,6 @@ function linearCount(arr, t){ let c = 0; for (let i = 0; i < arr.length; i++){ c
   }
   $('#g-go').onclick = guess;
   $('#g-input').addEventListener('keydown', e => { if (e.key === 'Enter') guess(); });
-  $('#g-mid').onclick = () => { if (over) return; $('#g-input').value = Math.floor((lo + hi) / 2); $('#g-input').focus(); };
   $('#g-reset').onclick = reset;
   reset();
 })();
